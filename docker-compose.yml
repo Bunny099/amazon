@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres-amazon
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: amazon_user
+      POSTGRES_PASSWORD: amazon_pass
+      POSTGRES_DB: amazon_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

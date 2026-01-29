@@ -1,6 +1,14 @@
 import type { CreateUserInput } from "../lib/zod/auth.schema.js"
+import type { LoginUserInput } from "../lib/zod/auth.schema.js";
 import { db } from "../lib/db.js";
 import bcrypt from "bcryptjs";
+import jwt  from "jsonwebtoken";
+
+const AUTH_SECRET = process.env.AUTH_SECRET
+if(!AUTH_SECRET){
+    throw new Error("Auth secret not found!")
+}
+
 export const createUser = async(data:CreateUserInput)=>{
     const {name,email,password,role} = data;
     const existingUser = await db.user.findUnique({where:{email}});
@@ -14,4 +22,16 @@ export const createUser = async(data:CreateUserInput)=>{
     }
     return {id:response.id,email:response.email,rname:response.name,ole:response.role,createdAt:response.createdAt,updatedAt:response.updatedAt};
 }
-export const loginCheck  = async()=>{}
+export const loginCheck  = async(data:LoginUserInput)=>{
+    const {email,password,role} = data;
+    const existingUser = await db.user.findUnique({where:{email,role}});
+    if(!existingUser){
+        throw new Error("No user found!")
+    }
+    const userCheck = await bcrypt.compare(password,existingUser.password);
+    if(!userCheck){
+        throw new Error("Password doesn't match!")
+    }
+    const token = jwt.sign({id:existingUser.id,role:existingUser.role},AUTH_SECRET);
+    return token;
+}

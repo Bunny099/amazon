@@ -7,5 +7,10 @@ export const CreateUserSchema = z.object({
     password:z.string().min(6).max(80),
     role:RoleEnum.default("Customer")
 })
-
+export const UserLoginSchema = z.object({
+    email:z.email(),
+    password:z.string().min(6).max(80),
+    role:RoleEnum.default("Customer")
+})
 export type CreateUserInput = z.infer<typeof CreateUserSchema>  
+export type LoginUserInput = z.infer<typeof UserLoginSchema>

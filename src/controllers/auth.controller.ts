@@ -1,6 +1,7 @@
 import { type Request, type Response } from "express";
 import { CreateUserSchema } from "../lib/zod/auth.schema.js";
-import { createUser } from "../services/auth.service.js";
+import { UserLoginSchema } from "../lib/zod/auth.schema.js";
+import { createUser, loginCheck } from "../services/auth.service.js";
 
 export const register = async (req: Request, res: Response) => {
     try {
@@ -16,7 +17,18 @@ export const register = async (req: Request, res: Response) => {
 
 }
 
-export const login = async (req: Request, res: Response) => { }
+export const login = async (req: Request, res: Response) => {
+    try {
+        const parsed = UserLoginSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({ error: parsed.error, message: "Invalid fields" })
+        }
+        const response = await loginCheck(parsed.data)
+        return res.status(200).json({ response, message: "Login success!" })
+    } catch (e: any) {
+        return res.status(500).json({ message: e.message || "Sever error!" })
+    }
+}
 
 
 

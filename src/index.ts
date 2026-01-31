@@ -1,5 +1,7 @@
 import app from "./app.js"
-const PORT = process.env.PORT;
+import "dotenv/config"
+
+const PORT = Number( process.env.PORT) || 3000;
 if(!PORT){
     throw new Error("Port not found!")
 }

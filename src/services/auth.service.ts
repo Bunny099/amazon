@@ -3,6 +3,7 @@ import type { LoginUserInput } from "../lib/zod/auth.schema.js";
 import { db } from "../lib/db.js";
 import bcrypt from "bcryptjs";
 import jwt  from "jsonwebtoken";
+import "dotenv/config"
 
 const AUTH_SECRET = process.env.AUTH_SECRET
 if(!AUTH_SECRET){

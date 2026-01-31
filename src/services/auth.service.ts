@@ -32,6 +32,6 @@ export const loginCheck  = async(data:LoginUserInput)=>{
     if(!userCheck){
         throw new Error("Password doesn't match!")
     }
-    const token = jwt.sign({id:existingUser.id,role:existingUser.role},AUTH_SECRET);
+    const token = jwt.sign({id:existingUser.id,role:existingUser.role},AUTH_SECRET,{expiresIn:"1hr"});
     return token;
 }

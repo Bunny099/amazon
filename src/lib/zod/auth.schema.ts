@@ -14,3 +14,4 @@ export const UserLoginSchema = z.object({
 })
 export type CreateUserInput = z.infer<typeof CreateUserSchema>  
 export type LoginUserInput = z.infer<typeof UserLoginSchema>
+export type Role = z.infer<typeof RoleEnum>

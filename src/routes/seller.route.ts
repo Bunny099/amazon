@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { middleware } from "../middleware/middleware.js";
-import { sellerController } from "../controllers/seller.controller.js";
+import { sellerProductController ,sellerPatchController,getSellerProductController,deleteProductController} from "../controllers/seller.controller.js";
 
-export const sellerRourer = Router()
-sellerRourer.post("/product",middleware,sellerController)
+export const sellerRouter = Router()
+sellerRouter.get("/product",middleware,getSellerProductController)
+sellerRouter.post("/product",middleware,sellerProductController)
+sellerRouter.patch("/product/:productId/:price",middleware,sellerPatchController)
+sellerRouter.delete("/product/:productId",middleware,deleteProductController)

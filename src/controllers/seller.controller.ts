@@ -1,69 +1,72 @@
-import { type Request,type Response } from "express"
-import { createProduct,fetchProduct,patchProuct, deleteProduct } from "../services/seller.service.js";
+import { type Request, type Response } from "express"
+import { createProduct, fetchProduct, patchProuct, deleteProduct } from "../services/seller.service.js";
+import { UserSchema } from "../lib/zod/auth.schema.js";
+import { ProductDeleteSchema, ProductPatchSchema, ProductSchema } from "../lib/zod/seller.product.js";
 
 
 
-export const getSellerProductController = async(req:Request,res:Response)=>{
-    try{
-        const user = req.user;
-        if(!user){
-            return res.status(401).json({message:"Unauthorized!"})
-        }
-        const response = await fetchProduct(user);
-        return res.status(200).json({response,message:"Products found!"})
-    }catch(e:any){
-        return res.status(500).json({message:e.message || "Server error!"})
-    }
-}
-export const sellerProductController = async(req:Request,res:Response)=>{
-    try{
-        const {name,price} = req.body;
-        const user = req.user;
-        if(!user){
-            return res.status(401).json({message:"Unauthorized!"})
-        } 
-        if(!name){
-            return res.status(400).json({message:"Field missing!"})
-        }
-        const response = await createProduct({user,name,price});
-        return res.status(201).json({response,nessage:"Product created!"})
+export const getSellerProductController = async (req: Request, res: Response) => {
+    try {
        
-    }catch(e:any){
-        return res.status(500).json({message:e.message || "Server error!"})
+        const input = {user:req.user};
+        
+        const parseUser = UserSchema.safeParse(req.user)
+        if (!parseUser.success) {
+            return res.status(401).json({ message: "Invalid fields!" })
+        }
+        
+        const response = await fetchProduct(parseUser.data);
+        return res.status(200).json({ response, message: "Products found!" })
+    } catch (e: any) {
+        return res.status(500).json({ message: e.message || "Server error!" })
+    }
+}
+export const sellerProductController = async (req: Request, res: Response) => {
+    try {
+        
+        const input = { ...req.body, user: req.user }
+        
+        const pasedProduct = ProductSchema.safeParse(input)
+        if (!pasedProduct.success) {
+            return res.status(400).json({ message: "Invalid fields!" })
+        }
+        const response = await createProduct(pasedProduct.data);
+        return res.status(201).json({ response, message: "Product created!" })
+
+    } catch (e: any) {
+        return res.status(500).json({ message: e.message || "Server error!" })
     }
 }
 
-export const sellerPatchController = async(req:Request,res:Response)=>{
-    try{
-        const {productId,price} = req.params;
-        const user = req.user;
-        if(!user){
-            return res.status(401).json({message:"Unauthorized!"})
+export const sellerPatchController = async (req: Request, res: Response) => {
+    try {
+        
+        const productId = Array.isArray(req.params.productId) ? req.params.productId[0] : req.params.productId;
+        const input = { ...req.body, productId, user: req.user }
+        const parsePatchProduct = ProductPatchSchema.safeParse(input);
+        if (!parsePatchProduct.success) {
+            return res.status(400).json({ message: "Invalid Fields!" })
         }
-        if(!productId || !price){
-            return res.status(400).json({message:"Field missing!"})
-        }
-        const response = await patchProuct({user,productId,price})
-        return res.status(200).json({response,message:"Product updated!"})
+        const response = await patchProuct(parsePatchProduct.data)
+        return res.status(200).json({ response, message: "Product updated!" })
 
-    }catch(e:any){
-        return res.status(500).json({message:e.message || "Sever error!"})
+    } catch (e: any) {
+        return res.status(500).json({ message: e.message || "Sever error!" })
     }
 }
 
-export const deleteProductController = async(req:Request,res:Response)=>{
-    try{
-        const {productId} = req.params;
-        const user = req.user;
-        if(!user){
-            return res.status(401).json({message:"Unauthorized!"})
+export const deleteProductController = async (req: Request, res: Response) => {
+    try {
+        
+        const productId = Array.isArray(req.params.productId) ? req.params.productId[0] : req.params.productId;
+        const input = { productId, user: req.user }
+        const parseDeleteProduct = ProductDeleteSchema.safeParse(input);
+        if (!parseDeleteProduct.success) {
+            return res.status(400).json({ message: "Invalid fields!" })
         }
-        if(!productId){
-            return res.status(400).json({message:"Field missing!"})
-        }
-        const response = await deleteProduct({productId,user})
-        return res.status(200).json({response,message:"Product deleted!"})
-    }catch(e:any){
-        return res.status(500).json({message:e.message || "Server error!"})
+        const response = await deleteProduct(parseDeleteProduct.data)
+        return res.status(200).json({ response, message: "Product deleted!" })
+    } catch (e: any) {
+        return res.status(500).json({ message: e.message || "Server error!" })
     }
 }

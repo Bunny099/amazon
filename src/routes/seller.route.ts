@@ -5,5 +5,5 @@ import { sellerProductController ,sellerPatchController,getSellerProductControll
 export const sellerRouter = Router()
 sellerRouter.get("/product",middleware,getSellerProductController)
 sellerRouter.post("/product",middleware,sellerProductController)
-sellerRouter.patch("/product/:productId/:price",middleware,sellerPatchController)
+sellerRouter.patch("/product/:productId",middleware,sellerPatchController)
 sellerRouter.delete("/product/:productId",middleware,deleteProductController)

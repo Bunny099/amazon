@@ -1,20 +1,21 @@
 import { type Request, type Response } from "express"
-import { createProduct, fetchProduct, patchProuct, deleteProduct } from "../services/seller.service.js";
+import { createProduct, fetchProduct, patchProuct, deleteProduct, fetchInventories, createInventory} from "../services/seller.service.js";
 import { UserSchema } from "../lib/zod/auth.schema.js";
 import { ProductDeleteSchema, ProductPatchSchema, ProductSchema } from "../lib/zod/seller.product.js";
+import { InventoriesFetchSchema, InventoriesSchema } from "../lib/zod/inventoris.schema.js";
 
 
 
 export const getSellerProductController = async (req: Request, res: Response) => {
     try {
-       
-        const input = {user:req.user};
-        
+
+        const input = { user: req.user };
+
         const parseUser = UserSchema.safeParse(req.user)
         if (!parseUser.success) {
             return res.status(401).json({ message: "Invalid fields!" })
         }
-        
+
         const response = await fetchProduct(parseUser.data);
         return res.status(200).json({ response, message: "Products found!" })
     } catch (e: any) {
@@ -23,9 +24,9 @@ export const getSellerProductController = async (req: Request, res: Response) =>
 }
 export const sellerProductController = async (req: Request, res: Response) => {
     try {
-        
+
         const input = { ...req.body, user: req.user }
-        
+
         const pasedProduct = ProductSchema.safeParse(input)
         if (!pasedProduct.success) {
             return res.status(400).json({ message: "Invalid fields!" })
@@ -40,7 +41,7 @@ export const sellerProductController = async (req: Request, res: Response) => {
 
 export const sellerPatchController = async (req: Request, res: Response) => {
     try {
-        
+
         const productId = Array.isArray(req.params.productId) ? req.params.productId[0] : req.params.productId;
         const input = { ...req.body, productId, user: req.user }
         const parsePatchProduct = ProductPatchSchema.safeParse(input);
@@ -57,7 +58,7 @@ export const sellerPatchController = async (req: Request, res: Response) => {
 
 export const deleteProductController = async (req: Request, res: Response) => {
     try {
-        
+
         const productId = Array.isArray(req.params.productId) ? req.params.productId[0] : req.params.productId;
         const input = { productId, user: req.user }
         const parseDeleteProduct = ProductDeleteSchema.safeParse(input);
@@ -70,3 +71,34 @@ export const deleteProductController = async (req: Request, res: Response) => {
         return res.status(500).json({ message: e.message || "Server error!" })
     }
 }
+
+//seller inventories
+export const getSellerInventory = async (req: Request, res: Response) => {
+    try {
+        const productId = Array.isArray(req.params.productId) ? req.params.productId[0] : req.params.productId;
+        const input = { user: req.user, productId };
+        const parsed = InventoriesFetchSchema.safeParse(input);
+        if (!parsed.success) {
+            return res.status(400).json({ message: "Invlaid fields!" })
+        }
+        const response = await fetchInventories(parsed.data);
+        return res.status(200).json({ response, message: "Inventory found!" })
+    } catch (e: any) {
+        return res.status(500).json({ message: e.message || "Server error!" })
+    }
+}
+
+export const createInventoryController = async (req: Request, res: Response) => {
+    try {
+        const input = { ...req.body, user: req.user, }
+        const parsed = InventoriesSchema.safeParse(input);
+        if (!parsed.success) {
+            return res.status(400).json({ message: "Invalid fields!" })
+        }
+        const response = await createInventory(parsed.data);
+        return res.status(201).json({ response, message: "Inventory created!" })
+    } catch (e: any) {
+        return res.status(500).json({ message: e.message || "Server error!" })
+    }
+}
+

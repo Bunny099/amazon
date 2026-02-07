@@ -4,8 +4,8 @@ import type { ProductInputData } from "../lib/zod/seller.product.js";
 import type { User } from "../lib/zod/auth.schema.js";
 import type { ProductPatchData } from "../lib/zod/seller.product.js";
 import type { ProductDeleteData } from "../lib/zod/seller.product.js";
-
-
+import type { InventoryInputData } from "../lib/zod/inventoris.schema.js";
+import type { InventoriesInputFetchData } from "../lib/zod/inventoris.schema.js";
 export const fetchProduct = async (data: User) => {
     const user = data;
     if (user.role !== "Seller") {
@@ -60,3 +60,31 @@ export const deleteProduct = async (data: ProductDeleteData) => {
     }
     return response
 }
+
+//seller inventories services
+
+export const fetchInventories = async(data:InventoriesInputFetchData)=>{
+    const {productId,user} = data;
+    if(user.role !== "Seller"){
+        throw new Error("Not authorized!")
+    }
+    const response  = await db.inventory.findFirst({where:{sellerId:user.id,productId}});
+    return response;
+};
+
+export const createInventory = async(data:InventoryInputData)=>{
+    const {user,productId,reservedQty,soldQty,availableQty} = data;
+    if(user.role !== "Seller"){
+        throw new Error("Not authorized!")
+    }
+    const isProductExist = await db.product.findFirst({where:{id:productId,sellerId:user.id}});
+    if(!isProductExist){
+        throw new Error("Product not exist!")
+    }
+    const response = await db.inventory.create({data:{productId,sellerId:user.id,soldQty,availableQty,reservedQty}});
+    if(!response){
+        throw new Error("Inventory not created!")
+    }
+    return response;
+};
+

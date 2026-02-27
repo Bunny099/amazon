@@ -79,6 +79,7 @@ model Cart {
   customer User @relation(fields: [customerId],references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@unique([customerId])
 }
 
 model CartItem {
@@ -88,6 +89,7 @@ model CartItem {
   cart Cart @relation(fields: [cartId],references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  @@unique([cartId,productId])
 }
 
 

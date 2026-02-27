@@ -1,3 +1,4 @@
+import { REFUSED } from "node:dns";
 import { Prisma } from "../generated/prisma/client.js";
 import { db } from "../lib/db.js";
 import type { CartInput } from "../lib/zod/customer.schema.js";
@@ -7,22 +8,26 @@ export const createCart = async (data: CartInput) => {
     if (user.role !== "Customer") {
         throw new Error("Not authorized!")
     }
+    
+    let product = await db.product.findUnique({where:{id:productId}});
+    if(!product){
+        throw new Error("Product not found!")
+    }
     const response = await db.$transaction(async (tx) => {
-        let cartExist = await tx.cart.findFirst({ where: { customerId: user.id } });
-       
+        let cartExist = await tx.cart.findUnique({ where: { customerId: user.id} });
         
         if (cartExist) {
-            let isProductAlreadyExist = await tx.cartItem.findFirst({ where: { productId, cartId: cartExist?.id } });
+            let isProductAlreadyExist = await tx.cartItem.findFirst({ where: { productId:product.id, cartId: cartExist?.id } });
             if (isProductAlreadyExist) {
                 return isProductAlreadyExist;
             } else {
-                let response = await tx.cartItem.create({ data: { productId, cartId: cartExist.id } });
+                let response = await tx.cartItem.create({ data: { productId:product?.id, cartId: cartExist.id } });
                 return response;
             }
 
         } else {
             let cart = await tx.cart.create({ data: { customerId: user.id } });
-            let response = await tx.cartItem.create({ data: { productId, cartId: cart.id } });
+            let response = await tx.cartItem.create({ data: { productId:product.id, cartId: cart.id } });
             return response;
         }
 
@@ -31,7 +36,6 @@ export const createCart = async (data: CartInput) => {
         maxWait: 20000,
         timeout: 20000
     })
-
     return response;
 
 

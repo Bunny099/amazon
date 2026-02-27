@@ -8,7 +8,7 @@ export const createCartCustomerController = async(req:Request,res:Response)=>{
         const input = {...req.body,user:req.user}
         const parse = CartSchema.safeParse(input)
         if(!parse.success){
-            return res.status(401).json({message:"Invalid fields!"})
+            return res.status(400).json({message:"Invalid fields!"})
         }
         
         const response = await createCart(parse.data);

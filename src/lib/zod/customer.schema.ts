@@ -6,4 +6,13 @@ export const CartSchema = z.object({
     user:UserSchema
 })
 
+export const OrderSchema = z.object({
+    sellerId:z.string(),
+    productId:z.string(),
+    priceAtPurchase:z.string(),
+    user:UserSchema
+
+})
+
 export type CartInput =z.infer<typeof CartSchema>
+export type OrderInput = z.infer<typeof OrderSchema>

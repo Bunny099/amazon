@@ -29,6 +29,7 @@ export const createOrderCustomerController = async(req:Request,res:Response)=>{
             throw new Error("Invalid fields!");
         }
         const response = await createOrder(parse.data)
+        return res.status(200).json({response,message:"Ordered!"})
     }catch(e:any){
         return res.status(500).json({message:e.message || "Server error!"})
     }

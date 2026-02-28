@@ -1,6 +1,6 @@
 import { type Request,type Response } from "express"
-import { createCart } from "../services/custonmer.service.js";
-import {CartSchema }from "../lib/zod/customer.schema.js"
+import { createCart, createOrder } from "../services/custonmer.service.js";
+import {CartSchema, OrderSchema }from "../lib/zod/customer.schema.js"
 
 
 export const createCartCustomerController = async(req:Request,res:Response)=>{
@@ -23,7 +23,12 @@ export const createCartCustomerController = async(req:Request,res:Response)=>{
 
 export const createOrderCustomerController = async(req:Request,res:Response)=>{
     try{
-
+        const input = {...req.body,user:req.user};
+        const parse = OrderSchema.safeParse(input);
+        if(!parse.success){
+            throw new Error("Invalid fields!");
+        }
+        const response = await createOrder(parse.data)
     }catch(e:any){
         return res.status(500).json({message:e.message || "Server error!"})
     }

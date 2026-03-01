@@ -73,7 +73,7 @@ export const fetchInventories = async(data:InventoriesInputFetchData)=>{
 };
 
 export const createInventory = async(data:InventoryInputData)=>{
-    const {user,productId,reservedQty,soldQty,availableQty} = data;
+    const {user,productId,availableQty} = data;
     if(user.role !== "Seller"){
         throw new Error("Not authorized!")
     }
@@ -81,7 +81,7 @@ export const createInventory = async(data:InventoryInputData)=>{
     if(!isProductExist){
         throw new Error("Product not exist!")
     }
-    const response = await db.inventory.create({data:{productId,sellerId:user.id,soldQty,availableQty,reservedQty}});
+    const response = await db.inventory.create({data:{productId,sellerId:user.id,availableQty}});
     if(!response){
         throw new Error("Inventory not created!")
     }

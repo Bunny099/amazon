@@ -40,12 +40,7 @@ model Product {
 enum ORDER_ITEM_STATE{
   CREATED
   CONFIRMED
-  PACKED
-  SHIPPED
-  DELIVERED
   CANCELED
-  RETURNED
-  REFUNDED
 
 }
 model Order {
@@ -67,7 +62,6 @@ model OrderItem {
   productId String
   sellerId String
   status ORDER_ITEM_STATE
-  return Return[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -85,6 +79,7 @@ model Cart {
 model CartItem {
   id String @id @default(uuid())
   productId String
+  quantity Int @default(0)
   cartId String
   cart Cart @relation(fields: [cartId],references: [id])
   createdAt DateTime @default(now())
@@ -99,44 +94,9 @@ model Inventory {
   productId String
   sellerId String
   availableQty Int
-  soldQty Int
-  reservedQty Int
+  soldQty Int @default(0)
+  reservedQty Int @default(0)
   products Product @relation(fields: [productId],references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-enum SHIPMENT{
-  Shipped
-  Delivered
-}
-model Shipment {
-  id String @id @default(ulid())
-  shipmentItems ShipmentItem[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model ShipmentItem {
-  id String @id @default(uuid())
-  orderItemId String
-  shipmentId String
-  shipment Shipment @relation(fields: [shipmentId],references: [id])
-  status SHIPMENT
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-enum RETURN{
-  Cancelled
-  Return 
-  Refund
-}
-model Return {
-  id String @id @default(uuid())
-  orderItemId String
-  order OrderItem @relation(fields: [orderItemId],references: [id])
-  status RETURN
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

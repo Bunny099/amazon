@@ -10,8 +10,6 @@ export const InventoriesFetchSchema = z.object({
 export const InventoriesSchema = z.object({
     productId:z.string(),
     availableQty:z.number().int().nonnegative(),
-    soldQty:z.number().int().nonnegative(),
-    reservedQty:z.number().int().nonnegative(),
     user:UserSchema
 })
 

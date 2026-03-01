@@ -20,6 +20,9 @@ export const createCartCustomerController = async(req:Request,res:Response)=>{
     }
 }
 
+export const getCartCustomerController = async(req:Request,res:Response)=>{};
+export const editCartCustomerController = async (req:Request,res:Response)=>{};
+export const deleteCartCustomerController = async(req:Request,res:Response)=>{};
 
 export const createOrderCustomerController = async(req:Request,res:Response)=>{
     try{

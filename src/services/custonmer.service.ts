@@ -1,10 +1,10 @@
 import { REFUSED } from "node:dns";
 import { Prisma } from "../generated/prisma/client.js";
 import { db } from "../lib/db.js";
-import type { CartInput } from "../lib/zod/customer.schema.js";
+import type { CartInput, OrderInput } from "../lib/zod/customer.schema.js";
 
 export const createCart = async (data: CartInput) => {
-    const { user, productId } = data;
+    const { user, productId ,quantity} = data;
     if (user.role !== "Customer") {
         throw new Error("Not authorized!")
     }
@@ -21,13 +21,13 @@ export const createCart = async (data: CartInput) => {
             if (isProductAlreadyExist) {
                 return isProductAlreadyExist;
             } else {
-                let response = await tx.cartItem.create({ data: { productId:product?.id, cartId: cartExist.id } });
+                let response = await tx.cartItem.create({ data: { productId:product?.id, cartId: cartExist.id ,quantity} });
                 return response;
             }
 
         } else {
             let cart = await tx.cart.create({ data: { customerId: user.id } });
-            let response = await tx.cartItem.create({ data: { productId:product.id, cartId: cart.id } });
+            let response = await tx.cartItem.create({ data: { productId:product.id, cartId: cart.id ,quantity} });
             return response;
         }
 
@@ -41,6 +41,8 @@ export const createCart = async (data: CartInput) => {
 
 };
 
-export const createOrder = async () => { };
+export const createOrder = async (data:OrderInput) => { 
+   
+};
 
 export const cancleOrder = async () => { };

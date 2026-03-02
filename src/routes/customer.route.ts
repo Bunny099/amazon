@@ -11,12 +11,10 @@ customerRouter.get("/cart",middleware,getCartCustomerController);
 customerRouter.patch("/cart/:productId",middleware,editCartCustomerController);
 customerRouter.delete("/cart/:productId",middleware,deleteCartCustomerController)
 
-//customer checkout
-
 
 //customer order
-customerRouter.post("/order",middleware,createOrderCustomerController)
+customerRouter.post("/checkout",middleware,createOrderCustomerController)
 
 
 //customer canclation-return
-customerRouter.post("/order/cancle",middleware,cancleOrderCustomerController)
+customerRouter.post("/order/:id/cancel",middleware,cancleOrderCustomerController)

@@ -6,13 +6,14 @@ import type { ProductPatchData } from "../lib/zod/seller.product.js";
 import type { ProductDeleteData } from "../lib/zod/seller.product.js";
 import type { InventoryInputData } from "../lib/zod/inventoris.schema.js";
 import type { InventoriesInputFetchData } from "../lib/zod/inventoris.schema.js";
+
 export const fetchProduct = async (data: User) => {
     const user = data;
     if (user.role !== "Seller") {
         throw new Error("Not authorized!")
     }
     const response = await db.product.findMany({ where: { sellerId: user.id } });
-    if (!response) {
+    if (response.length === 0) {
         throw new Error("Products not found!")
     }
     return response;
@@ -28,13 +29,13 @@ export const createProduct = async (data: ProductInputData) => {
     }
     return response;
 }
-export const patchProuct = async (data: ProductPatchData) => {
+export const patchProduct = async (data: ProductPatchData) => {
     const { user, productId, price } = data;
     if (user.role !== "Seller") {
         throw new Error("Not authorized!")
     }
-    const isProductExist = await db.product.findFirst({where:{id:productId,sellerId:user.id}});
-    if(!isProductExist){
+    const isProductExist = await db.product.findFirst({ where: { id: productId, sellerId: user.id } });
+    if (!isProductExist) {
         throw new Error("Product not found!")
     }
     const response = await db.product.update({ where: { id: productId, sellerId: user.id }, data: { price } });
@@ -50,8 +51,8 @@ export const deleteProduct = async (data: ProductDeleteData) => {
     if (user.role !== "Seller") {
         throw new Error("Not authorized!")
     }
-    const isProductExist = await db.product.findFirst({where:{id:productId,sellerId:user.id}});
-    if(!isProductExist){
+    const isProductExist = await db.product.findFirst({ where: { id: productId, sellerId: user.id } });
+    if (!isProductExist) {
         throw new Error("Product not found!")
     }
     const response = await db.product.delete({ where: { id: productId } });
@@ -63,26 +64,30 @@ export const deleteProduct = async (data: ProductDeleteData) => {
 
 //seller inventories services
 
-export const fetchInventories = async(data:InventoriesInputFetchData)=>{
-    const {productId,user} = data;
-    if(user.role !== "Seller"){
+export const fetchInventories = async (data: InventoriesInputFetchData) => {
+    const { productId, user } = data;
+    if (user.role !== "Seller") {
         throw new Error("Not authorized!")
     }
-    const response  = await db.inventory.findFirst({where:{sellerId:user.id,productId}});
+    const response = await db.inventory.findFirst({ where: { sellerId: user.id, productId } });
     return response;
 };
 
-export const createInventory = async(data:InventoryInputData)=>{
-    const {user,productId,availableQty} = data;
-    if(user.role !== "Seller"){
+export const createInventory = async (data: InventoryInputData) => {
+    const { user, productId, availableQty } = data;
+    if (user.role !== "Seller") {
         throw new Error("Not authorized!")
     }
-    const isProductExist = await db.product.findFirst({where:{id:productId,sellerId:user.id}});
-    if(!isProductExist){
+    const isProductExist = await db.product.findUnique({ where: { id: productId, sellerId: user.id } });
+    if (!isProductExist) {
         throw new Error("Product not exist!")
     }
-    const response = await db.inventory.create({data:{productId,sellerId:user.id,availableQty}});
-    if(!response){
+    const inventoryAlreadyExist = await db.inventory.findFirst({ where: { productId, sellerId: user.id } });
+    if (inventoryAlreadyExist) {
+        throw new Error("Inventory already exist!")
+    }
+    const response = await db.inventory.create({ data: { productId, sellerId: user.id, availableQty } });
+    if (!response) {
         throw new Error("Inventory not created!")
     }
     return response;

@@ -1,7 +1,7 @@
 import { REFUSED } from "node:dns";
 import { Prisma } from "../generated/prisma/client.js";
 import { db } from "../lib/db.js";
-import type { CartDeleteInput, CartInput, OrderInput } from "../lib/zod/customer.schema.js";
+import type { CartDeleteInput, CartInput, OrderCancelInput, OrderInput } from "../lib/zod/customer.schema.js";
 import type { User } from "../lib/zod/auth.schema.js";
 
 export const createCart = async (data: CartInput) => {
@@ -98,7 +98,140 @@ export const deleteCart = async (data: CartDeleteInput) => {
 
 
 export const createOrder = async (data: OrderInput) => {
+    const { user } = data;
+    if (user.role !== "Customer") {
+        throw new Error("Not authorized!")
+    }
+    const response = await db.$transaction(
+        async (tx) => {
+            //1.find cart
+            const cart = await tx.cart.findUnique({ where: { customerId: user.id } });
+            if (!cart) {
+                throw new Error("cart not found!")
+            }
+            const cartItems = await tx.cartItem.findMany({ where: { cartId: cart.id } });
+            if (cartItems.length === 0) {
+                throw new Error("cart items not found!")
+            }
+            const productsIds = cartItems.map((i) => (i.productId));
 
-};
+            //2.find products
+            const products = await tx.product.findMany({ where: { id: { in: productsIds } } });
 
-export const cancleOrder = async () => { };
+            if (products.length !== cartItems.length) {
+                throw new Error("Some products not found!")
+            }
+
+            //3.inventory update;
+            for (let i of cartItems) {
+
+                const result = await tx.inventory.updateMany({
+                    where: {
+                        productId: i.productId,
+                        availableQty: { gte: i.quantity }
+                    }, data: {
+                        availableQty: { decrement: i.quantity },
+                        reservedQty: { increment: i.quantity }
+                    }
+                })
+                if (result.count === 0) {
+                    throw new Error("Insufficient stock!")
+                }
+            }
+
+            //4.creating order
+
+            const order = await tx.order.create({ data: { customerId: user.id } });
+
+            //5.creating orderitems using cartitems;
+
+            for (let i of cartItems) {
+                let product = products.find((p) => p.id === i.productId);
+
+                await tx.orderItem.createMany({
+                    data: {
+                        orderId: order.id,
+                        productId: i.productId,
+                        sellerId: product!?.sellerId,
+                        priceAtPurchase: product!?.price,
+                        quantity: i.quantity,
+                        status: "CREATED"
+                    }
+                })
+            }
+
+            //6.clearing a cart
+            await tx.cartItem.deleteMany({ where: { cartId: cart.id } })
+
+            return order;
+        },
+        {
+            isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+            maxWait: 30000,
+            timeout: 30000
+        }
+
+    )
+    return response;
+}
+
+export const cancelOrder = async (data: OrderCancelInput) => {
+    const { user, orderId } = data;
+    if (user.role !== "Customer") {
+        throw new Error("Not authorized!")
+    }
+    const response = await db.$transaction(
+        async (tx) => {
+            const orderExist = await tx.order.findUnique({ where: { id: orderId } });
+            if (!orderExist) {
+                throw new Error("Order not found!");
+            }
+            if (orderExist.customerId !== user.id) {
+                throw new Error("Wrong order!")
+            }
+            const orderItems = await tx.orderItem.findMany({ where: { orderId: orderExist.id } });
+            if (orderItems.length === 0) {
+                throw new Error("Order  items not found!")
+            }
+            for (let i of orderItems) {
+                if (i.status !== "CREATED") {
+                    throw new Error("order not found!")
+                }
+               let result = await tx.inventory.updateMany({
+                    where: {
+                        productId: i.productId,
+                        reservedQty: { gte: i.quantity }
+                    },
+                    data: {
+                        availableQty: { increment: i.quantity },
+                        reservedQty: { decrement: i.quantity }
+                    }
+                })
+                if(result.count === 0){
+                    throw new Error("failed to restored Inventory!")
+                }
+                let orderCancel =await tx.orderItem.updateMany({
+                    where: {
+                        productId: i.productId,
+                        orderId:orderExist.id,
+                        status: "CREATED"
+                    },
+                    data: {
+                        status: "CANCELED"
+                    }
+                })
+                if(orderCancel.count === 0){
+                    throw new Error("Failed to update ")
+                }
+
+            }
+
+        },
+        {
+            isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+            maxWait: 30000,
+            timeout: 30000
+        }
+    )
+    return response;
+}

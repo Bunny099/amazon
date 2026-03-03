@@ -1,5 +1,5 @@
 import { type Request, type Response } from "express"
-import { createProduct, fetchProduct, patchProuct, deleteProduct, fetchInventories, createInventory} from "../services/seller.service.js";
+import { createProduct, fetchProduct, patchProduct, deleteProduct, fetchInventories, createInventory } from "../services/seller.service.js";
 import { UserSchema } from "../lib/zod/auth.schema.js";
 import { ProductDeleteSchema, ProductPatchSchema, ProductSchema } from "../lib/zod/seller.product.js";
 import { InventoriesFetchSchema, InventoriesSchema } from "../lib/zod/inventoris.schema.js";
@@ -48,7 +48,7 @@ export const sellerPatchController = async (req: Request, res: Response) => {
         if (!parsePatchProduct.success) {
             return res.status(400).json({ message: "Invalid Fields!" })
         }
-        const response = await patchProuct(parsePatchProduct.data)
+        const response = await patchProduct(parsePatchProduct.data)
         return res.status(200).json({ response, message: "Product updated!" })
 
     } catch (e: any) {

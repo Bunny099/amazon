@@ -3,14 +3,14 @@ import { UserSchema } from "./auth.schema.js";
 
 
 export const InventoriesFetchSchema = z.object({
-    productId:z.string(),
-    user:UserSchema
+    productId: z.string(),
+    user: UserSchema
 })
 
 export const InventoriesSchema = z.object({
-    productId:z.string(),
-    availableQty:z.number().int().nonnegative(),
-    user:UserSchema
+    productId: z.string(),
+    availableQty: z.number().int().nonnegative(),
+    user: UserSchema
 })
 
 export type InventoriesInputFetchData = z.infer<typeof InventoriesFetchSchema>

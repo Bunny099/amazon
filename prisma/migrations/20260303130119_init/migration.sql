@@ -2,13 +2,7 @@
 CREATE TYPE "ROLE" AS ENUM ('Customer', 'Seller', 'Admin');
 
 -- CreateEnum
-CREATE TYPE "ORDER_ITEM_STATE" AS ENUM ('CREATED', 'CONFIRMED', 'PACKED', 'SHIPPED', 'DELIVERED', 'CANCELED', 'RETURNED', 'REFUNDED');
-
--- CreateEnum
-CREATE TYPE "SHIPMENT" AS ENUM ('Shipped', 'Delivered');
-
--- CreateEnum
-CREATE TYPE "RETURN" AS ENUM ('Cancelled', 'Return', 'Refund');
+CREATE TYPE "ORDER_ITEM_STATE" AS ENUM ('CREATED', 'CANCELED');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -27,6 +21,8 @@ CREATE TABLE "User" (
 CREATE TABLE "Product" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "price" INTEGER NOT NULL,
+    "sellerId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -72,6 +68,7 @@ CREATE TABLE "Cart" (
 CREATE TABLE "CartItem" (
     "id" TEXT NOT NULL,
     "productId" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL DEFAULT 0,
     "cartId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -85,48 +82,24 @@ CREATE TABLE "Inventory" (
     "productId" TEXT NOT NULL,
     "sellerId" TEXT NOT NULL,
     "availableQty" INTEGER NOT NULL,
-    "soldQty" INTEGER NOT NULL,
-    "reservedQty" INTEGER NOT NULL,
+    "reservedQty" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Inventory_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "Shipment" (
-    "id" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Shipment_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ShipmentItem" (
-    "id" TEXT NOT NULL,
-    "orderItemId" TEXT NOT NULL,
-    "shipmentId" TEXT NOT NULL,
-    "status" "SHIPMENT" NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "ShipmentItem_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Return" (
-    "id" TEXT NOT NULL,
-    "orderItemId" TEXT NOT NULL,
-    "status" "RETURN" NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Return_pkey" PRIMARY KEY ("id")
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Cart_customerId_key" ON "Cart"("customerId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CartItem_cartId_productId_key" ON "CartItem"("cartId", "productId");
+
+-- AddForeignKey
+ALTER TABLE "Product" ADD CONSTRAINT "Product_sellerId_fkey" FOREIGN KEY ("sellerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -142,9 +115,3 @@ ALTER TABLE "CartItem" ADD CONSTRAINT "CartItem_cartId_fkey" FOREIGN KEY ("cartI
 
 -- AddForeignKey
 ALTER TABLE "Inventory" ADD CONSTRAINT "Inventory_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "ShipmentItem" ADD CONSTRAINT "ShipmentItem_shipmentId_fkey" FOREIGN KEY ("shipmentId") REFERENCES "Shipment"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Return" ADD CONSTRAINT "Return_orderItemId_fkey" FOREIGN KEY ("orderItemId") REFERENCES "OrderItem"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

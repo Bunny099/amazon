@@ -14,89 +14,89 @@ enum ROLE {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
-  email     String   @unique
+  email     String    @unique
   password  String
   role      ROLE
-  order Order[]
-  cart Cart[]
-  product Product[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  order     Order[]
+  cart      Cart[]
+  product   Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Product {
-  id String @id @default(uuid())
-  name String
-  price Int
-  sellerId String
-  seller User @relation(fields: [sellerId],references: [id])
+  id          String      @id @default(uuid())
+  name        String
+  price       Int
+  sellerId    String
+  seller      User        @relation(fields: [sellerId], references: [id])
   inventories Inventory[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
-enum ORDER_ITEM_STATE{
+enum ORDER_ITEM_STATE {
   CREATED
-  CONFIRMED
   CANCELED
-
 }
-model Order {
-  id        String    @id @default(uuid())
-  customerId String
-  customer User @relation(fields: [customerId],references: [id])
-  orderItems OrderItem[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
+model Order {
+  id         String      @id @default(uuid())
+  customerId String
+  customer   User        @relation(fields: [customerId], references: [id])
+  orderItems OrderItem[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 }
 
 model OrderItem {
-  id         String  @id @default(uuid())
-  quantity Int
-  priceAtPurchase Int 
-  orderId String
-  order Order @relation(fields: [orderId],references: [id])
-  productId String
-  sellerId String
-  status ORDER_ITEM_STATE
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String           @id @default(uuid())
+  quantity        Int
+  priceAtPurchase Int
+  orderId         String
+  order           Order            @relation(fields: [orderId], references: [id])
+  productId       String
+  sellerId        String
+  status          ORDER_ITEM_STATE
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 model Cart {
-  id String @id @default(uuid())
-  cartItems CartItem[]
+  id         String     @id @default(uuid())
+  cartItems  CartItem[]
   customerId String
-  customer User @relation(fields: [customerId],references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  customer   User       @relation(fields: [customerId], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
   @@unique([customerId])
 }
 
 model CartItem {
-  id String @id @default(uuid())
+  id        String   @id @default(uuid())
   productId String
-  quantity Int @default(0)
-  cartId String
-  cart Cart @relation(fields: [cartId],references: [id])
+  quantity  Int      @default(0)
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  @@unique([cartId,productId])
-}
 
+  @@unique([cartId, productId])
+}
 
 //availableQty + reservedQty + soldQty must always equal total stock.
 model Inventory {
-  id String @id @default(uuid())
-  productId String
-  sellerId String
+  id           String   @id @default(uuid())
+  productId    String
+  sellerId     String
   availableQty Int
-  soldQty Int @default(0)
-  reservedQty Int @default(0)
-  products Product @relation(fields: [productId],references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  reservedQty  Int      @default(0)
+  products     Product  @relation(fields: [productId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([productId])
 }
